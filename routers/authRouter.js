@@ -6,7 +6,7 @@ router.post("/login", async(req, res) => {
   try {
     const {email, password} = req.body;
 
-    if (!email || !password) return res.status(400).send("Request is missing a email or password");
+    if (!email || !password) return res.status(400).send("Request is missing an email or password");
 
     let user = await User.exists({email: email});
     if(!user) return res.status(400).send("email or password is incorrect");
@@ -17,7 +17,7 @@ router.post("/login", async(req, res) => {
 
     //TODO: send page token
 
-    res.send("page");
+    res.send("login successful");
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
@@ -26,7 +26,15 @@ router.post("/login", async(req, res) => {
 
 router.post("/signup", async(req, res) => {
   try {
-    res.send("page");
+    const {email, password, username, name} = req.body;
+
+    if (!email || !password || !username || !name) return res.status(400).send("Request is missing an email, password, username, or name");
+
+    //TODO: create new User document and Page document
+    //send back token and Page document
+
+    res.send("signup succesful");
+
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
