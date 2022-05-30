@@ -1,6 +1,6 @@
-const req = require("express/lib/request");
 const mongoose = require("mongoose");
-const { Schema, model } = mongoose;
+const User = require("./User");
+const { Schema, SchemaTypes, model } = mongoose;
 
 const pageSchema = new Schema({
   name: {
@@ -11,7 +11,11 @@ const pageSchema = new Schema({
     type: String,
     required: true,
   },
-  userId: req(User._id),
+  userId: {
+    type: SchemaTypes.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   colors: {
     lightFG: String,
     lightBG: String,
