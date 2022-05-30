@@ -6,10 +6,14 @@ const pageSchema = new Schema({
   name: {
     type: String,
     required: true,
+    ref: 'User',
+    unique: true,
   },
   username: {
     type: String,
     required: true,
+    ref: 'User',
+    unique: true,
   },
   userId: {
     type: SchemaTypes.ObjectId,
