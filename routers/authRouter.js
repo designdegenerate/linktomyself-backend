@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const User = require("../models/User");
 const router = Router();
+const bcrypt = require("bcrypt");
 
 router.post("/login", async(req, res) => {
   try {
@@ -11,9 +12,8 @@ router.post("/login", async(req, res) => {
     let user = await User.exists({email: email});
     if(!user) return res.status(400).send("email or password is incorrect");
 
-    //TODO: make secure with salting and friends
     user = await User.findOne({email: email});
-    if(user.password !== password) return res.status(400).send("email or password is incorrect");
+    if( !bcrypt.compareSync(password, user.password) ) return res.status(400).send("email or password is incorrect");
 
     //TODO: send page token
 

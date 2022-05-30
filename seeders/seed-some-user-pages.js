@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const authKey = require("../auth");
 const Page = require("../models/Page");
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 mongoose.connect(authKey);
 
@@ -13,14 +15,14 @@ const seedSomeUsersAndPages = async () => {
   try {
     const firstUser = await User.create({
       email: "laurens@laurens.com",
-      password: "laurenspassword",
+      password: bcrypt.hashSync("laurenspassword", saltRounds),
       username: "laurensuser",
       name: "laurens",
     });
 
     const secondUser = await User.create({
       email: "david@david.com",
-      password: "davidpassword",
+      password: bcrypt.hashSync("davidpassword", saltRounds),
       username: "daviduser",
       name: "david",
     });
