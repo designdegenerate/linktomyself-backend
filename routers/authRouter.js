@@ -3,46 +3,63 @@ const User = require("../models/User");
 const router = Router();
 const bcrypt = require("bcrypt");
 const Page = require("../models/Page");
+const { jwtKey } = require("../keys");
+const jwt = require("jsonwebtoken");
 
-router.post("/login", async(req, res) => {
+router.post("/login", async (req, res) => {
   try {
-    const {email, password} = req.body;
+    const { email, password } = req.body;
 
-    if (!email || !password) return res.status(400).send("Request is missing an email or password");
+    if (!email || !password)
+      return res.status(400).send("Request is missing an email or password");
 
-    let user = await User.exists({email: email});
-    if(!user) return res.status(400).send("email or password is incorrect");
+    let user = await User.exists({ email: email });
+    if (!user) return res.status(400).send("email or password is incorrect");
 
-    user = await User.findOne({email: email});
-    if( !bcrypt.compareSync(password, user.password) ) return res.status(400).send("email or password is incorrect");
+    user = await User.findOne({ email: email });
+    if (!bcrypt.compareSync(password, user.password))
+      return res.status(400).send("email or password is incorrect");
 
-    //TODO: send page token
+    const token = jwt.sign({ userId: user._id }, jwtKey);
 
-    res.send("login successful");
+    res
+      .cookie("access_token", token, {
+        httpOnly: true,
+      })
+      .send("login successful");
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
   }
-})
+});
 
-router.post("/signup", async(req, res) => {
+router.post("/signup", async (req, res) => {
   try {
-    const {email, password, username, name} = req.body;
+    const { email, password, username, name } = req.body;
 
-    if (!email || !password || !username || !name) return res.status(400).send("Request is missing an email, password, username, or name");
+    if (!email || !password || !username || !name)
+      return res
+        .status(400)
+        .send("Request is missing an email, password, username, or name");
 
-    const emailExists = await User.exists({email: email});
-    if (emailExists) return res.status(400).send(`user with email: ${email} already exists`);
+    const emailExists = await User.exists({ email: email });
+    if (emailExists)
+      return res.status(400).send(`user with email: ${email} already exists`);
 
-    const usernameExists = await User.exists({username: username});
-    if (usernameExists) return res.status(400).send(`user with username: ${username} already exists`);
+    const usernameExists = await User.exists({ username: username });
+    if (usernameExists)
+      return res
+        .status(400)
+        .send(`user with username: ${username} already exists`);
 
-    //TODO: create new User document and Page document
     //send back token and Page document
 
     const newUser = await User.create({
-      email, password, username, name
-    })
+      email,
+      password,
+      username,
+      name,
+    });
 
     const newPage = await Page.create({
       name: newUser.name,
@@ -53,15 +70,21 @@ router.post("/signup", async(req, res) => {
       oneLiner: "",
       bio: "",
       sectionOrdering: [],
-      sections: []
+      sections: [],
     });
 
-    res.send(newPage);
+    const token = jwt.sign({ userId: newUser._id }, jwtKey);
+
+    res
+      .cookie("access_token", token, {
+        httpOnly: true,
+      })
+      .send(newPage);
 
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
   }
-})
+});
 
 module.exports = router;

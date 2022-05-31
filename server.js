@@ -2,11 +2,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
 const PORT = 3000;
-const authKey = require("./auth");
 const pageRouter = require("./routers/pageRouter");
 const authRouter = require("./routers/authRouter");
+const { mongoURI } = require("./keys");
 
-mongoose.connect(authKey);
+//TODO:
+// 1. Integrate JWT, send it and integrate parser
+// 2. setup cookies, send one and parse it
+
+mongoose.connect(mongoURI);
 
 
 app.use(express.json());

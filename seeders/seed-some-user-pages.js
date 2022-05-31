@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const authKey = require("../auth");
 const Page = require("../models/Page");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const { mongoURI } = require("../keys");
 const saltRounds = 10;
 
-mongoose.connect(authKey);
+mongoose.connect(mongoURI);
 
 // This is a very ugly way of doing
 // it and just shown as a quick and 
