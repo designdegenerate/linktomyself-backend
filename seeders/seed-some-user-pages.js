@@ -28,9 +28,7 @@ const seedSomeUsersAndPages = async () => {
     });
 
     const firstPage = await Page.create({
-      name: firstUser.name,
-      username: firstUser.username,
-      userId: firstUser._id,
+      user: firstUser._id,
       colors: {},
       permaLinks: [],
       oneLiner: "",
@@ -40,9 +38,7 @@ const seedSomeUsersAndPages = async () => {
     })
 
     const secondPage = await Page.create({
-      name: secondUser.name,
-      username: secondUser.name,
-      userId: secondUser._id,
+      user: secondUser._id,
       colors: {},
       permaLinks: [],
       oneLiner: "",

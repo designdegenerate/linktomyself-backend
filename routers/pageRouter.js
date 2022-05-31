@@ -4,7 +4,12 @@ const router = Router();
 
 router.get("/:username", async (req, res) => {
   try {
-    const userPage = await Page.findOne({ username: req.params.username });
+    const userPage = await Page
+    .findOne({ username: req.params.username })
+    .populate({
+      path: 'user',
+      select: '-_id -password -email',
+    });
 
     if (!userPage) return res.status(404).send("page not found");
 

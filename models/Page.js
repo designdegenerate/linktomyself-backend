@@ -3,19 +3,7 @@ const User = require("./User");
 const { Schema, SchemaTypes, model } = mongoose;
 
 const pageSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-    ref: 'User',
-    unique: true,
-  },
-  username: {
-    type: String,
-    required: true,
-    ref: 'User',
-    unique: true,
-  },
-  userId: {
+  user: {
     type: SchemaTypes.ObjectId,
     ref: 'User',
     required: true,

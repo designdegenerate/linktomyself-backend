@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const Page = require("../models/Page");
 const { jwtKey } = require("../keys");
 const jwt = require("jsonwebtoken");
+const saltRounds = 10;
 
 router.post("/login", async (req, res) => {
   try {
@@ -56,15 +57,13 @@ router.post("/signup", async (req, res) => {
 
     const newUser = await User.create({
       email,
-      password,
+      password: bcrypt.hashSync(password, saltRounds),
       username,
       name,
     });
 
     const newPage = await Page.create({
-      name: newUser.name,
-      username: newUser.username,
-      userId: firstUser._id,
+      user: newUser._id,
       colors: {},
       permaLinks: [],
       oneLiner: "",
@@ -73,13 +72,21 @@ router.post("/signup", async (req, res) => {
       sections: [],
     });
 
+    const userSanitized = {...newUser._doc};
+    delete userSanitized.password;
+
+    // const userSanitized = delete newUser.password;
     const token = jwt.sign({ userId: newUser._id }, jwtKey);
 
     res
       .cookie("access_token", token, {
         httpOnly: true,
       })
-      .send(newPage);
+      .send({
+        newPage,
+        userSanitized
+      }
+        );
 
   } catch (error) {
     console.log(error);
