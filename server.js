@@ -1,10 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const app = express();
-const PORT = 4000;
+const corsMiddleWare = require("cors");
 const pageRouter = require("./routers/pageRouter");
 const authRouter = require("./routers/authRouter");
 const { mongoURI } = require("./keys");
+
+const app = express();
+const PORT = 4000;
 
 //TODO:
 // 1. Integrate JWT, send it and integrate parser
@@ -12,8 +14,8 @@ const { mongoURI } = require("./keys");
 
 mongoose.connect(mongoURI);
 
-
 app.use(express.json());
+app.use(corsMiddleWare);
 
 app.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);
