@@ -1,19 +1,20 @@
 const { Router } = require("express");
 const Page = require("../models/Page");
+const User = require("../models/User");
 const router = Router();
 
 router.get("/:username", async (req, res) => {
   try {
-    const userPage = await Page
+    const userPage = await User
     .findOne({ username: req.params.username })
     .populate({
-      path: 'user',
-      select: '-_id -password -email',
+      path: 'page',
     });
+
 
     if (!userPage) return res.status(404).send("page not found");
 
-    res.send(userPage);
+    res.send(userPage.page);
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Schema, model } = mongoose;
+const { Schema, SchemaTypes, model } = mongoose;
 
 const userSchema = new Schema({
   email: {
@@ -20,6 +20,10 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  page: {
+    type: SchemaTypes.ObjectId,
+    ref: 'Page',
+  }
 });
 
 const User = model('User', userSchema);
