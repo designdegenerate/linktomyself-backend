@@ -21,13 +21,18 @@ router.post("/login", async (req, res) => {
     if (!bcrypt.compareSync(password, user.password))
       return res.status(400).send("email or password is incorrect");
 
+    const userSanitized = {...user._doc};
+    delete userSanitized.password;
+
+    const userPage = Page.findOne({user: user._id});
+
     const token = jwt.sign({ userId: user._id }, jwtKey);
 
     res
       .cookie("access_token", token, {
         httpOnly: true,
       })
-      .send("login successful");
+      .send({userPage, userSanitized});
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
