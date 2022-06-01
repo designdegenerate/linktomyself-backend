@@ -33,7 +33,7 @@ const seedSomeUsersAndPages = async () => {
         lightFG: "#181197",
         lightBG: "#ECEFF7",
         darkFG: "#ECEFF7",
-        darkBg: "#181735",
+        darkBG: "#181735",
       },
       permaLinks: [
         {
@@ -112,7 +112,7 @@ const seedSomeUsersAndPages = async () => {
         lightFG: "#181197",
         lightBG: "#ECEFF7",
         darkFG: "#ECEFF7",
-        darkBg: "#181735",
+        darkBG: "#181735",
       },
       permaLinks: [],
       oneLiner: "",

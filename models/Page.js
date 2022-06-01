@@ -12,7 +12,7 @@ const pageSchema = new Schema({
     lightFG: String,
     lightBG: String,
     darkFG: String,
-    darkBg: String,
+    darkBG: String,
   },
   permaLinks: [
     {
