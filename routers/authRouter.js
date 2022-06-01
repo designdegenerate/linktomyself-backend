@@ -24,7 +24,7 @@ router.post("/login", async (req, res) => {
     const userSanitized = {...user._doc};
     delete userSanitized.password;
 
-    const userPage = Page.findOne({user: user._id});
+    const userPage = await Page.findOne({user: user._id});
 
     const token = jwt.sign({ userId: user._id }, jwtKey);
 
@@ -32,7 +32,10 @@ router.post("/login", async (req, res) => {
       .cookie("access_token", token, {
         httpOnly: true,
       })
-      .send({userPage, userSanitized});
+      .send({
+        page: userPage,
+        profile: userSanitized
+      });
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
@@ -88,8 +91,8 @@ router.post("/signup", async (req, res) => {
         httpOnly: true,
       })
       .send({
-        newPage,
-        userSanitized
+        page: newPage,
+        profile: userSanitized
       }
         );
 

@@ -14,8 +14,10 @@ const PORT = 4000;
 
 mongoose.connect(mongoURI);
 
-app.use(express.json());
-app.use(corsMiddleWare);
+app.use(corsMiddleWare());
+
+const bodyParserMiddleWare = express.json();
+app.use(bodyParserMiddleWare);
 
 app.listen(PORT, () => {
   console.log(`Listening on port: ${PORT}`);
