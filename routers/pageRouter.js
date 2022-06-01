@@ -5,16 +5,20 @@ const router = Router();
 
 router.get("/:username", async (req, res) => {
   try {
-    const userPage = await User
+    const user = await User
     .findOne({ username: req.params.username })
+
+    //Can safely assume that no user means no page
+    if (!user) return res.status(404).send("page not found");
+
+    const page = await Page
+    .findOne({user: user._id})
     .populate({
-      path: 'page',
+      path: 'user',
+      select: '-_id -password -email',
     });
 
-
-    if (!userPage) return res.status(404).send("page not found");
-
-    res.send(userPage.page);
+    res.send(page);
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
