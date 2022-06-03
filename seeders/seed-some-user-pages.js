@@ -8,7 +8,7 @@ const saltRounds = 10;
 mongoose.connect(mongoURI);
 
 // This is a very ugly way of doing
-// it and just shown as a quick and 
+// it and just shown as a quick and
 // dirty example
 
 const seedSomeUsersAndPages = async () => {
@@ -29,6 +29,7 @@ const seedSomeUsersAndPages = async () => {
 
     const firstPage = await Page.create({
       user: firstUser._id,
+      profileImage: "https://cataas.com/cat?type=sq",
       colors: {
         lightFG: "#181197",
         lightBG: "#ECEFF7",
@@ -57,54 +58,70 @@ const seedSomeUsersAndPages = async () => {
           sectionName: "Favourite Food",
           icon: "",
           type: "gallery",
+          fullLink: {
+            link: "https://laurensdesign.design",
+            text: "My Foodie Instagram",
+          },
           content: [
             {
               title: "kroket",
-              image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Broodje_kroket_-_Febo_-_03.JPG/1024px-Broodje_kroket_-_Febo_-_03.JPG",
+              image:
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Broodje_kroket_-_Febo_-_03.JPG/1024px-Broodje_kroket_-_Febo_-_03.JPG",
+              imageAlt: "",
               author: "",
-              description: "Dutch fine dining and very long text description you have to deal with.",
+              description:
+                "Dutch fine dining and very long text description you have to deal with.",
             },
             {
               title: "Even more kroket long string",
-              image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg/577px-DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg",
+              image:
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg/577px-DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg",
+              imageAlt: "beautiful kroket",
               author: "",
               description: "Dutch.",
             },
             {
               title: "Evil photooftheoneandonly",
-              image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg/1024px-Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg",
+              image:
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg/1024px-Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg",
               author: "",
+              imageAlt: "",
               description: "Dutchlongsinglestringhahaha.",
             },
           ],
         },
         {
-          sectionName: "Favourite Food",
+          sectionName: "Favourite Books",
           icon: "",
-          type: "gallery",
+          type: "list",
+          fullLink: {
+            link: "https://laurensdesign.design",
+            text: "My Goodreads",
+          },
           content: [
             {
-              title: "kroket",
-              image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Broodje_kroket_-_Febo_-_03.JPG/1024px-Broodje_kroket_-_Febo_-_03.JPG",
-              author: "",
-              description: "Dutch fine dining and very long text description you have to deal with.",
+              title: "Dune",
+              image: "",
+              author: "Frank Herbert",
+              description:
+                "Dutch fine dining and very long text description you have to deal with.",
             },
             {
               title: "Even more kroket long string",
-              image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg/577px-DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg",
-              author: "",
+              image: "",
+              author: "Sinterklaas",
               description: "Dutch.",
             },
             {
               title: "Evil photooftheoneandonly",
-              image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg/1024px-Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg",
-              author: "",
+              image: "",
+              author: "Steven King",
               description: "Dutchlongsinglestringhahaha.",
             },
           ],
         },
-      ]
-    })
+      ],
+    });
 
     const secondPage = await Page.create({
       user: secondUser._id,
@@ -118,11 +135,11 @@ const seedSomeUsersAndPages = async () => {
       oneLiner: "",
       bio: "",
       sectionOrdering: [],
-      sections: []
-    })
+      sections: [],
+    });
 
-    await firstUser.update({page: firstPage._id});
-    await secondUser.update({page: secondPage._id});
+    await firstUser.update({ page: firstPage._id });
+    await secondUser.update({ page: secondPage._id });
 
     await firstUser.save();
     await secondUser.save();

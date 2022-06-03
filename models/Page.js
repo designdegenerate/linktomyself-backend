@@ -8,6 +8,7 @@ const pageSchema = new Schema({
     ref: 'User',
     required: true,
   },
+  profileImage: String,
   colors: {
     lightFG: String,
     lightBG: String,
@@ -41,6 +42,16 @@ const pageSchema = new Schema({
         type: String,
         required: true,
       },
+      fullLink: {
+        link: {
+          type: String,
+          required: true,
+        },
+        text: {
+          type: String,
+          required: true,
+        },
+      },
       content: [
         {
           title: {
@@ -48,6 +59,7 @@ const pageSchema = new Schema({
             required: true,
           },
           image: String,
+          imageAlt: String,
           author: String,
           description: String,
         },
