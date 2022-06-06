@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 
 router.post("/login", async (req, res) => {
+  console.log(req);
   try {
     const { email, password } = req.body;
 
@@ -30,7 +31,7 @@ router.post("/login", async (req, res) => {
 
     res
       .cookie("access_token", token, {
-        httpOnly: true,
+        httpOnly: true
       })
       .send({
         page: userPage,
@@ -101,5 +102,11 @@ router.post("/register", async (req, res) => {
     res.status(500).send("Something went wrong");
   }
 });
+
+router.get("/logout", async (req, res) => {
+  res
+  .clearCookie( "access_token")
+  .send({logout: true});
+})
 
 module.exports = router;

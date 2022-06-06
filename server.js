@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const corsMiddleWare = require("cors");
 const pageRouter = require("./routers/pageRouter");
 const authRouter = require("./routers/authRouter");
-const { mongoURI } = require("./keys");
+const { mongoURI, frontEndServer } = require("./keys");
 
 const app = express();
 const PORT = 4000;
@@ -14,7 +14,12 @@ const PORT = 4000;
 
 mongoose.connect(mongoURI);
 
-app.use(corsMiddleWare());
+app.use(corsMiddleWare({
+  preflightContinue: true,
+  origin: frontEndServer,
+  credentials: true,
+
+}));
 
 const bodyParserMiddleWare = express.json();
 app.use(bodyParserMiddleWare);
