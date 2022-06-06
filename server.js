@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const corsMiddleWare = require("cors");
+const cookiemiddleWare = require("cookie-parser");
 const pageRouter = require("./routers/pageRouter");
 const authRouter = require("./routers/authRouter");
 const { mongoURI, frontEndServer } = require("./keys");
@@ -18,8 +19,9 @@ app.use(corsMiddleWare({
   preflightContinue: true,
   origin: frontEndServer,
   credentials: true,
-
 }));
+
+app.use(cookiemiddleWare());
 
 const bodyParserMiddleWare = express.json();
 app.use(bodyParserMiddleWare);

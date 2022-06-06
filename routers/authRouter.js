@@ -8,7 +8,6 @@ const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 
 router.post("/login", async (req, res) => {
-  console.log(req);
   try {
     const { email, password } = req.body;
 
@@ -22,20 +21,20 @@ router.post("/login", async (req, res) => {
     if (!bcrypt.compareSync(password, user.password))
       return res.status(400).send("email or password is incorrect");
 
-    const userSanitized = {...user._doc};
+    const userSanitized = { ...user._doc };
     delete userSanitized.password;
 
-    const userPage = await Page.findOne({user: user._id});
+    const userPage = await Page.findOne({ user: user._id });
 
     const token = jwt.sign({ userId: user._id }, jwtKey);
 
     res
       .cookie("access_token", token, {
-        httpOnly: true
+        httpOnly: true,
       })
       .send({
         page: userPage,
-        profile: userSanitized
+        profile: userSanitized,
       });
   } catch (error) {
     console.log(error);
@@ -81,7 +80,7 @@ router.post("/register", async (req, res) => {
       sections: [],
     });
 
-    const userSanitized = {...newUser._doc};
+    const userSanitized = { ...newUser._doc };
     delete userSanitized.password;
 
     // const userSanitized = delete newUser.password;
@@ -93,20 +92,51 @@ router.post("/register", async (req, res) => {
       })
       .send({
         page: newPage,
-        profile: userSanitized
-      }
-        );
-
+        profile: userSanitized,
+      });
   } catch (error) {
     console.log(error);
     res.status(500).send("Something went wrong");
   }
 });
 
+//Path to restore login if user has JWT token as a cookie
+router.get("/user", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      try {
+        const id = jwt.verify(cookies.access_token, jwtKey);
+
+        let user = await User.exists({ userId: id.userId });
+        if (!user) return res.status(404).send("user no longer exists");
+
+        user = await User.findOne({ userId: id.userId });
+
+        const userSanitized = { ...user._doc };
+        delete userSanitized.password;
+
+        const userPage = await Page.findOne({ userId: id.userId });
+
+        res.send({
+          page: userPage,
+          profile: userSanitized,
+        });
+
+      } catch (error) {
+        res.status(401).send("invalid or expired JWT key sent");
+      }
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 router.get("/logout", async (req, res) => {
-  res
-  .clearCookie( "access_token")
-  .send({logout: true});
-})
+  res.clearCookie("access_token").send("");
+});
 
 module.exports = router;
