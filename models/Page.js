@@ -37,7 +37,6 @@ const pageSchema = new Schema({
         type: String,
         required: true,
       },
-      icon: String,
       type: {
         type: String,
         required: true,

@@ -25,6 +25,4 @@ router.get("/:username", async (req, res) => {
   }
 });
 
-//TODO: patch request, require auth for that.
-
 module.exports = router;

@@ -80,7 +80,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).send("Username cannot be longer than 12 characters");
     }
 
-    if (password.length > 8) {
+    if (password.length < 8) {
       return res.status(400).send("Password must be at least 8 characters");
     }
 
@@ -187,7 +187,7 @@ router.patch("/user", async (req, res) => {
 
         if (!bcrypt.compareSync(password, user.password)) {
           return res.status(400).send("old password is incorrect");
-        } else {
+        } else if (password && newPassword) {
           user.update({ password: bcrypt.hashSync(newPassword, saltRounds) });
         }
 
