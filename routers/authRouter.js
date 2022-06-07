@@ -42,6 +42,10 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get("/logout", async (req, res) => {
+  res.clearCookie("access_token").send("");
+});
+
 router.post("/register", async (req, res) => {
   try {
     const { email, password, username, name } = req.body;
@@ -90,6 +94,7 @@ router.post("/register", async (req, res) => {
       .cookie("access_token", token, {
         httpOnly: true,
       })
+      .status(201)
       .send({
         page: newPage,
         profile: userSanitized,
@@ -100,7 +105,11 @@ router.post("/register", async (req, res) => {
   }
 });
 
-//Path to restore login if user has JWT token as a cookie
+// Path to return current user.
+// GET returns the user's profile + page
+// if a valid JWT token is sent as a cookie
+// PATCH modifies the current user's profile
+
 router.get("/user", async (req, res) => {
   try {
     const cookies = req.cookies;
@@ -135,8 +144,51 @@ router.get("/user", async (req, res) => {
   }
 });
 
-router.get("/logout", async (req, res) => {
-  res.clearCookie("access_token").send("");
-});
+router.patch("/user", async (req, res) => {
+
+  try {
+    const cookies = req.cookies;
+    const {email, username, name, password, newPassword} = req.body;
+
+    if (cookies.access_token) {
+      try {
+        const id = jwt.verify(cookies.access_token, jwtKey);
+
+        let user = await User.exists({ userId: id.userId });
+        if (!user) return res.status(404).send("user no longer exists");
+
+        user = await User.findOne({ userId: id.userId });
+
+        if (email) return await user.update({email: email})
+        if (username) return await user.update({username: username})
+        if (name) return await user.update({username: name})
+
+        if (newPassword && !password) return res.status(400).send("In order to change the password, the old password must also be sent")
+
+        if (!bcrypt.compareSync(password, user.password)) {
+          return res.status(400).send("old password is incorrect");
+        } else {
+          user.update({password: bcrypt.hashSync(newPassword, saltRounds)})
+        }
+
+        user.save();
+
+        res.status(200).send();
+
+      } catch (error) {
+        res.status(401).send("invalid or expired session");
+      }
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+})
+
+router.put("/user/password", async(req, res) => {
+
+})
 
 module.exports = router;
