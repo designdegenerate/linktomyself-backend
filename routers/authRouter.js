@@ -47,6 +47,9 @@ router.get("/logout", async (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  const usernameRegex = /^^[a-zA-Z0-9_.-]*$/;
+
   try {
     const { email, password, username, name } = req.body;
 
@@ -65,7 +68,21 @@ router.post("/register", async (req, res) => {
         .status(400)
         .send(`user with username: ${username} already exists`);
 
-    //send back token and Page document
+    if (!emailRegex.test(email)) {
+      return res.status(400).send("Email is not valid");
+    }
+
+    if ( !usernameRegex.test(username)) {
+      return res.status(400).send("Username can only contain ASCII characters (aA–zZ, 0–9, '_', and '-').");
+    }
+    
+    if (username.length > 12) {
+      return res.status(400).send("Username cannot be longer than 12 characters");
+    }
+
+    if (password.length > 8) {
+      return res.status(400).send("Password must be at least 8 characters");
+    }
 
     const newUser = await User.create({
       email,
@@ -132,7 +149,6 @@ router.get("/user", async (req, res) => {
           page: userPage,
           profile: userSanitized,
         });
-
       } catch (error) {
         res.status(401).send("invalid or expired JWT key sent");
       }
@@ -145,10 +161,9 @@ router.get("/user", async (req, res) => {
 });
 
 router.patch("/user", async (req, res) => {
-
   try {
     const cookies = req.cookies;
-    const {email, username, name, password, newPassword} = req.body;
+    const { email, username, name, password, newPassword } = req.body;
 
     if (cookies.access_token) {
       try {
@@ -159,22 +174,26 @@ router.patch("/user", async (req, res) => {
 
         user = await User.findOne({ userId: id.userId });
 
-        if (email) return await user.update({email: email})
-        if (username) return await user.update({username: username})
-        if (name) return await user.update({username: name})
+        if (email) return await user.update({ email: email });
+        if (username) return await user.update({ username: username });
+        if (name) return await user.update({ username: name });
 
-        if (newPassword && !password) return res.status(400).send("In order to change the password, the old password must also be sent")
+        if (newPassword && !password)
+          return res
+            .status(400)
+            .send(
+              "In order to change the password, the old password must also be sent"
+            );
 
         if (!bcrypt.compareSync(password, user.password)) {
           return res.status(400).send("old password is incorrect");
         } else {
-          user.update({password: bcrypt.hashSync(newPassword, saltRounds)})
+          user.update({ password: bcrypt.hashSync(newPassword, saltRounds) });
         }
 
         user.save();
 
         res.status(200).send();
-
       } catch (error) {
         res.status(401).send("invalid or expired session");
       }
@@ -184,11 +203,8 @@ router.patch("/user", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+});
 
-})
-
-router.put("/user/password", async(req, res) => {
-
-})
+router.put("/user/password", async (req, res) => {});
 
 module.exports = router;
