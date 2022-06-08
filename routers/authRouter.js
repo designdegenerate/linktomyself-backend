@@ -135,10 +135,10 @@ router.get("/user", async (req, res) => {
       try {
         const id = jwt.verify(cookies.access_token, jwtKey);
 
-        let user = await User.exists({ userId: id.userId });
+        let user = await User.exists({ _id: id.userId });
         if (!user) return res.status(404).send("user no longer exists");
 
-        user = await User.findOne({ userId: id.userId });
+        user = await User.findOne({ _id: id.userId });
 
         const userSanitized = { ...user._doc };
         delete userSanitized.password;
