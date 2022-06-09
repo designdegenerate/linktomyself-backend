@@ -72,12 +72,18 @@ router.post("/register", async (req, res) => {
       return res.status(400).send("Email is not valid");
     }
 
-    if ( !usernameRegex.test(username)) {
-      return res.status(400).send("Username can only contain ASCII characters (aA–zZ, 0–9, '_', and '-').");
+    if (!usernameRegex.test(username)) {
+      return res
+        .status(400)
+        .send(
+          "Username can only contain ASCII characters (aA–zZ, 0–9, '_', and '-')."
+        );
     }
-    
+
     if (username.length > 12) {
-      return res.status(400).send("Username cannot be longer than 12 characters");
+      return res
+        .status(400)
+        .send("Username cannot be longer than 12 characters");
     }
 
     if (password.length < 8) {
@@ -163,37 +169,60 @@ router.get("/user", async (req, res) => {
 router.patch("/user", async (req, res) => {
   try {
     const cookies = req.cookies;
-    const { email, username, name, password, newPassword } = req.body;
 
     if (cookies.access_token) {
       try {
         const id = jwt.verify(cookies.access_token, jwtKey);
 
-        let user = await User.exists({ userId: id.userId });
+        let user = await User.exists({ _id: id.userId });
         if (!user) return res.status(404).send("user no longer exists");
 
-        user = await User.findOne({ userId: id.userId });
+        user = await User.findOne({ _id: id.userId });
+        page = await Page.findOne({ user: id.userId });
 
-        if (email) return await user.update({ email: email });
-        if (username) return await user.update({ username: username });
-        if (name) return await user.update({ username: name });
+        const data = Object.assign({}, ...req.body);
 
-        if (newPassword && !password)
-          return res
-            .status(400)
-            .send(
-              "In order to change the password, the old password must also be sent"
-            );
+        // This is very verbose, but Mongoose is unreliable
+        // Better safe than sorry
 
-        if (!bcrypt.compareSync(password, user.password)) {
-          return res.status(400).send("old password is incorrect");
-        } else if (password && newPassword) {
-          user.update({ password: bcrypt.hashSync(newPassword, saltRounds) });
+        if (data.email) {
+          await user.updateOne({ email: data.email });
         }
+
+        if (data.username) {
+          await user.updateOne({ username: data.username });
+        }
+        if (data.name) {
+          await user.updateOne({ name: data.name });
+        }
+
+        if (data.newPassword && !data.password) {
+          return res
+          .status(400)
+          .send(
+            "In order to change the password, the old password must also be sent"
+          );
+        } else if (data.newPassword) {
+          if (!bcrypt.compareSync(data.password, user.password)) {
+            return res.status(400).send("old password is incorrect");
+          } else if (password && newPassword) {
+            user.updateOne({ password: bcrypt.hashSync(data.newPassword, saltRounds) });
+          }
+        }
+
+        //Page DB
+        if (data.oneLiner) {
+          await page.updateOne({ oneLiner: data.oneLiner });
+        }
+        if (data.bio) {
+          await page.updateOne({ bio: data.bio });
+        }
+
+
 
         user.save();
 
-        res.status(200).send();
+        return res.status(200).send("hello");
       } catch (error) {
         res.status(401).send("invalid or expired session");
       }
