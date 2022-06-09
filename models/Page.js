@@ -10,10 +10,16 @@ const pageSchema = new Schema({
   },
   profileImage: String,
   colors: {
-    lightFG: String,
-    lightBG: String,
-    darkFG: String,
-    darkBG: String,
+    light: {
+      name: String,
+      lightFG: String,
+      lightBG: String,
+    },
+    dark: {
+      name: String,
+      darkFG: String,
+      darkBG: String,
+    },
   },
   permaLinks: [
     {

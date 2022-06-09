@@ -17,13 +17,13 @@ const seedSomeUsersAndPages = async () => {
       email: "a@a.nl",
       password: bcrypt.hashSync("a", saltRounds),
       username: "a",
-      name: "Amalie Von der Kaasenbergen",
+      name: "Amalie",
     });
 
     const secondUser = await User.create({
       email: "d@d.co",
       password: bcrypt.hashSync("davidpassword", saltRounds),
-      username: "daviduser",
+      username: "david",
       name: "David",
     });
 
@@ -31,10 +31,16 @@ const seedSomeUsersAndPages = async () => {
       user: firstUser._id,
       profileImage: "https://cataas.com/cat?type=sq",
       colors: {
-        lightFG: "#181197",
-        lightBG: "#ECEFF7",
-        darkFG: "#ECEFF7",
-        darkBG: "#181735",
+        light: {
+          name: "blue",
+          lightFG: "#d8ecee",
+          lightBG: "#00199d",
+        },
+        dark: {
+          name: "blue",
+          darkFG: "#5fb5bd",
+          darkBG: "#0c0a2b",
+        },
       },
       permaLinks: [
         {
@@ -126,10 +132,16 @@ const seedSomeUsersAndPages = async () => {
     const secondPage = await Page.create({
       user: secondUser._id,
       colors: {
-        lightFG: "#181197",
-        lightBG: "#ECEFF7",
-        darkFG: "#ECEFF7",
-        darkBG: "#181735",
+        light: {
+          name: "orange",
+          lightFG: "#9f2500",
+          lightBG: "#ffd8c0",
+        },
+        dark: {
+          name: "orange",
+          darkFG: "#ff6c00",
+          darkBG: "#150a0a",
+        },
       },
       permaLinks: [],
       oneLiner: "",

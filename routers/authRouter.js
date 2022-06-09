@@ -142,7 +142,11 @@ router.get("/user", async (req, res) => {
         const id = jwt.verify(cookies.access_token, jwtKey);
 
         let user = await User.exists({ _id: id.userId });
-        if (!user) return res.status(404).send("user no longer exists");
+        if (!user)
+          return res
+            .clearCookie("access_token")
+            .status(404)
+            .send("user no longer exists");
 
         user = await User.findOne({ _id: id.userId });
 
@@ -156,10 +160,13 @@ router.get("/user", async (req, res) => {
           profile: userSanitized,
         });
       } catch (error) {
-        res.status(401).send("invalid or expired JWT key sent");
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired JWT key sent");
       }
     } else {
-      res.status(401).send("user is not logged in");
+      res.clearCookie("access_token").status(401).send("user is not logged in");
     }
   } catch (error) {
     console.log(error);
@@ -198,17 +205,21 @@ router.patch("/user", async (req, res) => {
 
         if (data.newPassword && !data.password) {
           return res
-          .status(400)
-          .send(
-            "In order to change the password, the old password must also be sent"
-          );
+            .status(400)
+            .send(
+              "In order to change the password, the old password must also be sent"
+            );
         } else if (data.newPassword) {
           if (!bcrypt.compareSync(data.password, user.password)) {
             return res.status(400).send("old password is incorrect");
-          } else if (password && newPassword) {
-            user.updateOne({ password: bcrypt.hashSync(data.newPassword, saltRounds) });
+          } else if (data.password && data.newPassword) {
+            user.updateOne({
+              password: bcrypt.hashSync(data.newPassword, saltRounds),
+            });
           }
         }
+
+        user.save();
 
         //Page DB
         if (data.oneLiner) {
@@ -218,12 +229,19 @@ router.patch("/user", async (req, res) => {
           await page.updateOne({ bio: data.bio });
         }
 
+        if (data.colors?.light) {
+          page.colors.light = data.colors.light;
+        }
 
+        if (data.colors?.dark) {
+          page.colors.dark = data.colors.dark;
+        }
 
-        user.save();
+        page.save();
 
-        return res.status(200).send("hello");
+        return res.status(200).send("");
       } catch (error) {
+        console.log(error);
         res.status(401).send("invalid or expired session");
       }
     } else {
