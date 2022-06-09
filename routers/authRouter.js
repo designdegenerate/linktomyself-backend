@@ -143,7 +143,7 @@ router.get("/user", async (req, res) => {
         const userSanitized = { ...user._doc };
         delete userSanitized.password;
 
-        const userPage = await Page.findOne({ userId: id.userId });
+        const userPage = await Page.findOne({ user: id.userId });
 
         res.send({
           page: userPage,
