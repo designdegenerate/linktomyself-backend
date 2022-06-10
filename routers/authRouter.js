@@ -99,7 +99,18 @@ router.post("/register", async (req, res) => {
 
     const newPage = await Page.create({
       user: newUser._id,
-      colors: {},
+      colors: {
+        light: {
+          name: "grey",
+          lightFG: "#222",
+          lightBG: "#f9f9f9",
+        },
+        dark: {
+          name: "grey",
+          darkFG: "#e1e1e1",
+          darkBG: "#111",
+        },
+      },
       permaLinks: [],
       oneLiner: "",
       bio: "",
