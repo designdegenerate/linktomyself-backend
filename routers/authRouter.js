@@ -149,35 +149,37 @@ router.get("/user", async (req, res) => {
     const cookies = req.cookies;
 
     if (cookies.access_token) {
+      let id;
+
       try {
-        const id = jwt.verify(cookies.access_token, jwtKey);
-
-        let user = await User.exists({ _id: id.userId });
-        if (!user)
-          return res
-            .clearCookie("access_token")
-            .status(404)
-            .send("user no longer exists");
-
-        user = await User.findOne({ _id: id.userId });
-
-        const userSanitized = { ...user._doc };
-        delete userSanitized.password;
-
-        const userPage = await Page.findOne({ user: id.userId });
-
-        res.send({
-          page: userPage,
-          profile: userSanitized,
-        });
+        id = jwt.verify(cookies.access_token, jwtKey);
       } catch (error) {
         res
           .clearCookie("access_token")
           .status(401)
-          .send("invalid or expired JWT key sent");
+          .send("invalid or expired session");
       }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user)
+        return res
+          .clearCookie("access_token")
+          .status(404)
+          .send("user no longer exists");
+
+      user = await User.findOne({ _id: id.userId });
+
+      const userSanitized = { ...user._doc };
+      delete userSanitized.password;
+
+      const userPage = await Page.findOne({ user: id.userId });
+
+      res.send({
+        page: userPage,
+        profile: userSanitized,
+      });
     } else {
-      res.clearCookie("access_token").status(401).send("user is not logged in");
+      res.status(401).send("invalid or expired session");
     }
   } catch (error) {
     console.log(error);
@@ -189,75 +191,80 @@ router.patch("/user", async (req, res) => {
     const cookies = req.cookies;
 
     if (cookies.access_token) {
+      let id;
+
       try {
-        const id = jwt.verify(cookies.access_token, jwtKey);
-
-        let user = await User.exists({ _id: id.userId });
-
-        if (!user) {
-          return res.status(404).send("user no longer exists");
-        }
-
-        user = await User.findOne({ _id: id.userId });
-        page = await Page.findOne({ user: id.userId });
-
-        const data = Object.assign({}, ...req.body);
-
-        // This is very verbose, but Mongoose is unreliable
-        // Better safe than sorry
-
-        if (data.email) {
-          await user.updateOne({ email: data.email });
-        }
-
-        if (data.username) {
-          await user.updateOne({ username: data.username });
-        }
-        if (data.name) {
-          await user.updateOne({ name: data.name });
-        }
-
-        if (data.newPassword && !data.password) {
-          return res
-            .status(400)
-            .send(
-              "In order to change the password, the old password must also be sent"
-            );
-        } else if (data.newPassword) {
-          if (!bcrypt.compareSync(data.password, user.password)) {
-            return res.status(400).send("old password is incorrect");
-          } else if (data.password && data.newPassword) {
-            user.updateOne({
-              password: bcrypt.hashSync(data.newPassword, saltRounds),
-            });
-          }
-        }
-
-        user.save();
-
-        //Page DB
-        if (data.oneLiner) {
-          await page.updateOne({ oneLiner: data.oneLiner });
-        }
-        if (data.bio) {
-          await page.updateOne({ bio: data.bio });
-        }
-
-        if (data.colors?.light) {
-          page.colors.light = data.colors.light;
-        }
-
-        if (data.colors?.dark) {
-          page.colors.dark = data.colors.dark;
-        }
-
-        page.save();
-
-        return res.status(200).send("");
+        id = jwt.verify(cookies.access_token, jwtKey);
       } catch (error) {
         console.log(error);
-        res.status(401).send("invalid or expired session");
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
       }
+
+      let user = await User.exists({ _id: id.userId });
+
+      if (!user) {
+        return res.status(404).send("user no longer exists");
+      }
+
+      user = await User.findOne({ _id: id.userId });
+      page = await Page.findOne({ user: id.userId });
+
+      const data = Object.assign({}, ...req.body);
+
+      // This is very verbose, but Mongoose is unreliable
+      // Better safe than sorry
+
+      if (data.email) {
+        await user.updateOne({ email: data.email });
+      }
+
+      if (data.username) {
+        await user.updateOne({ username: data.username });
+      }
+      if (data.name) {
+        await user.updateOne({ name: data.name });
+      }
+
+      if (data.newPassword && !data.password) {
+        return res
+          .status(400)
+          .send(
+            "In order to change the password, the old password must also be sent"
+          );
+      } else if (data.newPassword) {
+        if (!bcrypt.compareSync(data.password, user.password)) {
+          return res.status(400).send("old password is incorrect");
+        } else if (data.password && data.newPassword) {
+          user.updateOne({
+            password: bcrypt.hashSync(data.newPassword, saltRounds),
+          });
+        }
+      }
+
+      user.save();
+
+      //Page DB
+      if (data.oneLiner) {
+        await page.updateOne({ oneLiner: data.oneLiner });
+      }
+      if (data.bio) {
+        await page.updateOne({ bio: data.bio });
+      }
+
+      if (data.colors?.light) {
+        page.colors.light = data.colors.light;
+      }
+
+      if (data.colors?.dark) {
+        page.colors.dark = data.colors.dark;
+      }
+
+      page.save();
+
+      return res.status(200).send("");
     } else {
       res.status(401).send("user is not logged in");
     }
@@ -271,14 +278,16 @@ router.post("/links", async (req, res) => {
     const cookies = req.cookies;
 
     if (cookies.access_token) {
-
       let id;
 
       try {
         id = jwt.verify(cookies.access_token, jwtKey);
       } catch (error) {
         console.log(error);
-        res.status(401).send("invalid or expired session");
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
       }
 
       let user = await User.exists({ _id: id.userId });
@@ -317,30 +326,35 @@ router.patch("/links", async (req, res) => {
     const cookies = req.cookies;
 
     if (cookies.access_token) {
+      let id;
+
       try {
-        const id = jwt.verify(cookies.access_token, jwtKey);
-
-        let user = await User.exists({ _id: id.userId });
-        if (!user) return res.status(404).send("user no longer exists");
-
-        page = await Page.findOne({ user: id.userId });
-
-        if (!req.body.text || !req.body.link) {
-          return res.status(400).send("Missing link data");
-        }
-
-        page.permaLinks.push({
-          text: req.body.text,
-          link: req.body.link,
-        });
-
-        page.save();
-
-        return res.status(200).send("");
+        id = jwt.verify(cookies.access_token, jwtKey);
       } catch (error) {
         console.log(error);
-        res.status(401).send("invalid or expired session");
+        res
+        .clearCookie("access_token")
+        .status(401)
+        .send("invalid or expired session");
       }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user) return res.status(404).send("user no longer exists");
+
+      page = await Page.findOne({ user: id.userId });
+
+      if (!req.body.text || !req.body.link) {
+        return res.status(400).send("Missing link data");
+      }
+
+      page.permaLinks.push({
+        text: req.body.text,
+        link: req.body.link,
+      });
+
+      page.save();
+
+      return res.status(200).send("");
     } else {
       res.status(401).send("user is not logged in");
     }
