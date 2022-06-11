@@ -49,11 +49,11 @@ const seedSomeUsersAndPages = async () => {
         },
         {
           text: "Instagram",
-          link: "https://laurensdesign.design",
+          link: "https://instagram.com",
         },
         {
           text: "Twitter",
-          link: "https://laurensdesign.design",
+          link: "https://t.co",
         },
       ],
       oneLiner: "Full Stack developer and Designer, full of it",

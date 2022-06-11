@@ -193,7 +193,10 @@ router.patch("/user", async (req, res) => {
         const id = jwt.verify(cookies.access_token, jwtKey);
 
         let user = await User.exists({ _id: id.userId });
-        if (!user) return res.status(404).send("user no longer exists");
+
+        if (!user) {
+          return res.status(404).send("user no longer exists");
+        }
 
         user = await User.findOne({ _id: id.userId });
         page = await Page.findOne({ user: id.userId });
@@ -263,6 +266,88 @@ router.patch("/user", async (req, res) => {
   }
 });
 
-router.put("/user/password", async (req, res) => {});
+router.post("/links", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        console.log(error);
+        res.status(401).send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+
+      if (!user) {
+        return res.status(404).send("user no longer exists");
+      }
+
+      page = await Page.findOne({ user: id.userId });
+
+      if (!req.body.text || !req.body.link) {
+        return res.status(400).send("Missing link data");
+      }
+
+      await page.permaLinks.push({
+        text: req.body.text,
+        link: req.body.link,
+      });
+
+      page.save();
+
+      const newLink = await page.permaLinks[page.permaLinks.length - 1];
+
+      return res.status(200).send(newLink);
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Something went wrong");
+  }
+});
+
+router.patch("/links", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      try {
+        const id = jwt.verify(cookies.access_token, jwtKey);
+
+        let user = await User.exists({ _id: id.userId });
+        if (!user) return res.status(404).send("user no longer exists");
+
+        page = await Page.findOne({ user: id.userId });
+
+        if (!req.body.text || !req.body.link) {
+          return res.status(400).send("Missing link data");
+        }
+
+        page.permaLinks.push({
+          text: req.body.text,
+          link: req.body.link,
+        });
+
+        page.save();
+
+        return res.status(200).send("");
+      } catch (error) {
+        console.log(error);
+        res.status(401).send("invalid or expired session");
+      }
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Something went wrong");
+  }
+});
 
 module.exports = router;
