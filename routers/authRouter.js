@@ -210,7 +210,7 @@ router.patch("/user", async (req, res) => {
       }
 
       user = await User.findOne({ _id: id.userId });
-      page = await Page.findOne({ user: id.userId });
+      const page = await Page.findOne({ user: id.userId });
 
       const data = Object.assign({}, ...req.body);
 
@@ -333,26 +333,32 @@ router.patch("/links", async (req, res) => {
       } catch (error) {
         console.log(error);
         res
-        .clearCookie("access_token")
-        .status(401)
-        .send("invalid or expired session");
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
       }
 
       let user = await User.exists({ _id: id.userId });
       if (!user) return res.status(404).send("user no longer exists");
 
-      page = await Page.findOne({ user: id.userId });
-
-      if (!req.body.text || !req.body.link) {
+      if (!req.body._id || !req.body.text || !req.body.link) {
         return res.status(400).send("Missing link data");
       }
 
-      page.permaLinks.push({
-        text: req.body.text,
-        link: req.body.link,
-      });
-
-      page.save();
+      await Page.findOneAndUpdate({ user: id.userId }, 
+        {
+          $set: {
+            'permaLinks.$[i]': req.body,
+          }
+        },
+        {
+          arrayFilters: [
+            {
+              "i._id": req.body._id
+            }
+          ]
+        }
+      )
 
       return res.status(200).send("");
     } else {
