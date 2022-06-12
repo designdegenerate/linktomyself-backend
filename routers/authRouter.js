@@ -273,6 +273,44 @@ router.patch("/user", async (req, res) => {
   }
 });
 
+router.patch("/user/delete", async (req, res) => {
+
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        console.log(error);
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user) return res.status(404).send("user no longer exists");
+
+      if (!req.body._id) {
+        return res.status(400).send("Missing link data");
+      }
+
+      await Page.findOneAndDelete({ user: id.userId });
+      await User.findByIdAndDelete(id.userId);
+
+      return res.status(200).send("");
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Something went wrong");
+  }
+});
+
 router.post("/links", async (req, res) => {
   try {
     const cookies = req.cookies;
