@@ -63,6 +63,7 @@ const seedSomeUsersAndPages = async () => {
         {
           sectionName: "Favourite Food",
           type: "gallery",
+          contentType: "food",
           fullLink: {
             link: "https://laurensdesign.design",
             text: "My Foodie Instagram",
@@ -102,6 +103,7 @@ const seedSomeUsersAndPages = async () => {
           sectionName: "Favourite Books",
           icon: "",
           type: "list",
+          contentType: "books",
           fullLink: {
             link: "https://laurensdesign.design",
             text: "My Goodreads",

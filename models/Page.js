@@ -47,6 +47,10 @@ const pageSchema = new Schema({
         type: String,
         required: true,
       },
+      contentType: {
+        type: String,
+        required: true,
+      },
       fullLink: {
         link: {
           type: String,
