@@ -3,9 +3,21 @@ const User = require("../models/User");
 const router = Router();
 const bcrypt = require("bcrypt");
 const Page = require("../models/Page");
-const { jwtKey } = require("../keys");
+const { jwtKey, cloudinaryKeys } = require("../keys");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
+const cloudinary = require("cloudinary").v2;
+const multer  = require('multer')
+const upload = multer({ dest: 'uploads/' });
+const fs = require("fs");
+const { promisify } = require('util');
+const unlinkAsync = promisify(fs.unlink);
+
+cloudinary.config({
+  cloud_name: cloudinaryKeys.cloud_name,
+  api_key: cloudinaryKeys.api_key,
+  api_secret: cloudinaryKeys.api_secret,
+});
 
 router.post("/login", async (req, res) => {
   try {
@@ -273,8 +285,53 @@ router.patch("/user", async (req, res) => {
   }
 });
 
-router.patch("/user/delete", async (req, res) => {
+router.post("/user/image", upload.single('image'), async (req, res) => {
+  try {
+    const cookies = req.cookies;
 
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user)
+        return res
+          .clearCookie("access_token")
+          .status(404)
+          .send("user no longer exists");
+
+      page = await Page.findOne({ user: id.userId });
+
+      console.log(page);
+
+      if (!req.file) {
+        res.status(401).send("No file was attached to the request");
+      }
+
+      const newImage = await cloudinary.uploader.upload(req.file.path)
+
+      await page.updateOne({profileImage: newImage.url});
+
+      await unlinkAsync(req.file.path);
+
+      res.send({profileImage: newImage.url});
+
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("something went wrong");
+  }
+});
+
+router.patch("/user/delete", async (req, res) => {
   try {
     const cookies = req.cookies;
 
@@ -383,20 +440,21 @@ router.patch("/links", async (req, res) => {
         return res.status(400).send("Missing link data");
       }
 
-      await Page.findOneAndUpdate({ user: id.userId }, 
+      await Page.findOneAndUpdate(
+        { user: id.userId },
         {
           $set: {
-            'permaLinks.$[i]': req.body,
-          }
+            "permaLinks.$[i]": req.body,
+          },
         },
         {
           arrayFilters: [
             {
-              "i._id": req.body._id
-            }
-          ]
+              "i._id": req.body._id,
+            },
+          ],
         }
-      )
+      );
 
       return res.status(200).send("");
     } else {
@@ -412,7 +470,6 @@ router.patch("/links", async (req, res) => {
 // request with cookies in Axios.
 
 router.patch("/links/delete", async (req, res) => {
-
   try {
     const cookies = req.cookies;
 
@@ -438,7 +495,7 @@ router.patch("/links/delete", async (req, res) => {
 
       page = await Page.findOne({ user: id.userId });
 
-      await page.permaLinks.pull({_id: req.body._id})
+      await page.permaLinks.pull({ _id: req.body._id });
 
       page.save();
 

@@ -66,6 +66,7 @@ const pageSchema = new Schema({
           image: String,
           imageAlt: String,
           author: String,
+          link: String,
           description: String,
         },
       ],
