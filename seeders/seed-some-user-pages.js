@@ -62,7 +62,6 @@ const seedSomeUsersAndPages = async () => {
       sections: [
         {
           sectionName: "Favourite Food",
-          icon: "",
           type: "gallery",
           fullLink: {
             link: "https://laurensdesign.design",
@@ -75,6 +74,7 @@ const seedSomeUsersAndPages = async () => {
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Broodje_kroket_-_Febo_-_03.JPG/1024px-Broodje_kroket_-_Febo_-_03.JPG",
               imageAlt: "",
               author: "",
+              link: "https://laurensdesign.design",
               description:
                 "Dutch fine dining and very long text description you have to deal with.",
             },
@@ -83,6 +83,7 @@ const seedSomeUsersAndPages = async () => {
               image:
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg/577px-DSC_0082_broodje_kroket_chiang_mai_2009_0629.jpg",
               imageAlt: "beautiful kroket",
+              link: "https://laurensdesign.design",
               author: "",
               description: "Dutch.",
             },
@@ -91,6 +92,7 @@ const seedSomeUsersAndPages = async () => {
               image:
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg/1024px-Barrica%2C_Fitzrovia%2C_London_%284093408145%29.jpg",
               author: "",
+              link: "https://laurensdesign.design",
               imageAlt: "",
               description: "Dutchlongsinglestringhahaha.",
             },
@@ -109,6 +111,7 @@ const seedSomeUsersAndPages = async () => {
               title: "Dune",
               image: "",
               author: "Frank Herbert",
+              link: "https://laurensdesign.design",
               description:
                 "Dutch fine dining and very long text description you have to deal with.",
             },
@@ -116,11 +119,13 @@ const seedSomeUsersAndPages = async () => {
               title: "Even more kroket long string",
               image: "",
               author: "Sinterklaas",
+              link: "https://laurensdesign.design",
               description: "Dutch.",
             },
             {
               title: "Evil photooftheoneandonly",
               image: "",
+              link: "https://laurensdesign.design",
               author: "Steven King",
               description: "Dutchlongsinglestringhahaha.",
             },
