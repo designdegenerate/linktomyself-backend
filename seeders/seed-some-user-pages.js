@@ -67,6 +67,7 @@ const seedSomeUsersAndPages = async () => {
           fullLink: {
             link: "https://laurensdesign.design",
             text: "My Foodie Instagram",
+            visible: true,
           },
           content: [
             {
@@ -107,6 +108,7 @@ const seedSomeUsersAndPages = async () => {
           fullLink: {
             link: "https://laurensdesign.design",
             text: "My Goodreads",
+            visible: false,
           },
           content: [
             {

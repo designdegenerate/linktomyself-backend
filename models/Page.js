@@ -60,6 +60,10 @@ const pageSchema = new Schema({
           type: String,
           required: true,
         },
+        visible: {
+          type: Boolean,
+          required: true,
+        }
       },
       content: [
         {
