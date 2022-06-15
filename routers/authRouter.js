@@ -561,4 +561,57 @@ router.patch("/sections/details", async (req, res) => {
   }
 });
 
+router.patch("/sections/cards", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        console.log(error);
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user) return res.status(404).send("user no longer exists");
+
+      if (!req.body) {
+        return res.status(400).send("Missing data");
+      }
+
+      await Page.findOneAndUpdate(
+        { user: id.userId },
+        {
+          $set: {
+            "sections.$[i].content.$[j]": req.body.data,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "i._id": req.body.section_id
+            },
+            {
+              "j._id": req.body.data._id
+            },
+          ],
+        }
+      );
+
+      return res.status(200).send("");
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Something went wrong");
+  }
+});
+
 module.exports = router;
