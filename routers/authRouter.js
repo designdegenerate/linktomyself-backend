@@ -310,8 +310,6 @@ router.post("/user/image", upload.single('image'), async (req, res) => {
 
       page = await Page.findOne({ user: id.userId });
 
-      console.log(page);
-
       if (!req.file) {
         res.status(401).send("No file was attached to the request");
       }
@@ -613,5 +611,66 @@ router.patch("/sections/cards", async (req, res) => {
     res.status(500).send("Something went wrong");
   }
 });
+
+router.post("/sections/cards/image", upload.single('image'), async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user)
+        return res
+          .clearCookie("access_token")
+          .status(404)
+          .send("user no longer exists");
+
+      page = await Page.findOne({ user: id.userId });
+
+      if (!req.file) {
+        res.status(401).send("No file was attached to the request");
+      }
+
+      const newImage = await cloudinary.uploader.upload(req.file.path)
+
+      await Page.findOneAndUpdate(
+        { user: id.userId },
+        {
+          $set: {
+            "sections.$[i].content.$[j].image": newImage.url,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "i._id": req.body.section_id
+            },
+            {
+              "j._id": req.body._id
+            },
+          ],
+        }
+      );
+
+      await unlinkAsync(req.file.path);
+
+      res.send({image: newImage.url});
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("something went wrong");
+  }
+});
+
 
 module.exports = router;
