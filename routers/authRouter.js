@@ -539,6 +539,7 @@ router.patch("/sections/details", async (req, res) => {
           $set: {
             "sections.$[i].fullLink.link": req.body.link,
             "sections.$[i].fullLink.text": req.body.text,
+            "sections.$[i].fullLink.visible": req.body.visible,
           },
         },
         {
