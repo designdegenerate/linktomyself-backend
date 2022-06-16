@@ -7,10 +7,11 @@ const { jwtKey, cloudinaryKeys } = require("../keys");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 const cloudinary = require("cloudinary").v2;
-const multer  = require('multer')
-const upload = multer({ dest: 'uploads/' });
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 const fs = require("fs");
-const { promisify } = require('util');
+const { promisify } = require("util");
+const { default: mongoose } = require("mongoose");
 const unlinkAsync = promisify(fs.unlink);
 
 cloudinary.config({
@@ -285,7 +286,7 @@ router.patch("/user", async (req, res) => {
   }
 });
 
-router.post("/user/image", upload.single('image'), async (req, res) => {
+router.post("/user/image", upload.single("image"), async (req, res) => {
   try {
     const cookies = req.cookies;
 
@@ -314,14 +315,13 @@ router.post("/user/image", upload.single('image'), async (req, res) => {
         res.status(401).send("No file was attached to the request");
       }
 
-      const newImage = await cloudinary.uploader.upload(req.file.path)
+      const newImage = await cloudinary.uploader.upload(req.file.path);
 
-      await page.updateOne({profileImage: newImage.url});
+      await page.updateOne({ profileImage: newImage.url });
 
       await unlinkAsync(req.file.path);
 
-      res.send({profileImage: newImage.url});
-
+      res.send({ profileImage: newImage.url });
     }
   } catch (error) {
     console.log(error);
@@ -593,10 +593,10 @@ router.patch("/sections/cards", async (req, res) => {
         {
           arrayFilters: [
             {
-              "i._id": req.body.section_id
+              "i._id": req.body.section_id,
             },
             {
-              "j._id": req.body.data._id
+              "j._id": req.body.data._id,
             },
           ],
         }
@@ -612,7 +612,71 @@ router.patch("/sections/cards", async (req, res) => {
   }
 });
 
-router.post("/sections/cards/image", upload.single('image'), async (req, res) => {
+router.post(
+  "/sections/cards/image",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const cookies = req.cookies;
+
+      if (cookies.access_token) {
+        let id;
+
+        try {
+          id = jwt.verify(cookies.access_token, jwtKey);
+        } catch (error) {
+          res
+            .clearCookie("access_token")
+            .status(401)
+            .send("invalid or expired session");
+        }
+
+        let user = await User.exists({ _id: id.userId });
+        if (!user)
+          return res
+            .clearCookie("access_token")
+            .status(404)
+            .send("user no longer exists");
+
+        page = await Page.findOne({ user: id.userId });
+
+        if (!req.file) {
+          res.status(401).send("No file was attached to the request");
+        }
+
+        const newImage = await cloudinary.uploader.upload(req.file.path);
+
+        await Page.findOneAndUpdate(
+          { user: id.userId },
+          {
+            $set: {
+              "sections.$[i].content.$[j].image": newImage.url,
+            },
+          },
+          {
+            arrayFilters: [
+              {
+                "i._id": req.body.section_id,
+              },
+              {
+                "j._id": req.body._id,
+              },
+            ],
+          }
+        );
+
+        await unlinkAsync(req.file.path);
+
+        res.send({ image: newImage.url });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send("something went wrong");
+    }
+  }
+);
+
+router.post("/sections/cards", async (req, res) => {
   try {
     const cookies = req.cookies;
 
@@ -622,6 +686,7 @@ router.post("/sections/cards/image", upload.single('image'), async (req, res) =>
       try {
         id = jwt.verify(cookies.access_token, jwtKey);
       } catch (error) {
+        console.log(error);
         res
           .clearCookie("access_token")
           .status(401)
@@ -629,48 +694,46 @@ router.post("/sections/cards/image", upload.single('image'), async (req, res) =>
       }
 
       let user = await User.exists({ _id: id.userId });
-      if (!user)
-        return res
-          .clearCookie("access_token")
-          .status(404)
-          .send("user no longer exists");
+      if (!user) return res.status(404).send("user no longer exists");
 
       page = await Page.findOne({ user: id.userId });
 
-      if (!req.file) {
-        res.status(401).send("No file was attached to the request");
+      if (!req.body) {
+        return res.status(400).send("Missing data");
       }
-
-      const newImage = await cloudinary.uploader.upload(req.file.path)
 
       await Page.findOneAndUpdate(
         { user: id.userId },
         {
-          $set: {
-            "sections.$[i].content.$[j].image": newImage.url,
+          $push: {
+            "sections.$[i].content": req.body.data,
           },
         },
         {
           arrayFilters: [
             {
-              "i._id": req.body.section_id
-            },
-            {
-              "j._id": req.body._id
+              "i._id": req.body.section_id,
             },
           ],
         }
       );
 
-      await unlinkAsync(req.file.path);
+      const getSection = await Page.aggregate([
+        { $match: { user: mongoose.Types.ObjectId(id.userId) } },
+        { $unwind: '$sections' },
+        { $match: { 'sections._id': mongoose.Types.ObjectId(req.body.section_id) } }
+      ]);
 
-      res.send({image: newImage.url});
+      const content = getSection[0].sections.content;
+
+      return res.status(200).send(content[content.length -1]);
+    } else {
+      res.status(401).send("user is not logged in");
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send("something went wrong");
+    res.status(500).send("Something went wrong");
   }
 });
-
 
 module.exports = router;
