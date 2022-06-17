@@ -507,6 +507,60 @@ router.patch("/links/delete", async (req, res) => {
   }
 });
 
+router.post("/sections", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        console.log(error);
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user) return res.status(404).send("user no longer exists");
+
+      if (!req.body.sectionName || !req.body.type || !req.body.contentType) {
+        return res.status(400).send("missing data");
+      }
+
+      page = await Page.findOne({ user: id.userId });
+
+      const {sectionName, type, contentType} = req.body;
+
+      await page.sections.push({
+        sectionName,
+        type,
+        contentType,
+        fullLink: {
+          link: " ",
+          text: " ",
+          visible: false
+        },
+        content: []
+      });
+
+      page.save();
+
+      const newSection = await page.sections[page.sections.length - 1];
+
+      return res.status(200).send(newSection);
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Something went wrong");
+  }
+});
+
 router.patch("/sections/details", async (req, res) => {
   try {
     const cookies = req.cookies;
@@ -720,13 +774,17 @@ router.post("/sections/cards", async (req, res) => {
 
       const getSection = await Page.aggregate([
         { $match: { user: mongoose.Types.ObjectId(id.userId) } },
-        { $unwind: '$sections' },
-        { $match: { 'sections._id': mongoose.Types.ObjectId(req.body.section_id) } }
+        { $unwind: "$sections" },
+        {
+          $match: {
+            "sections._id": mongoose.Types.ObjectId(req.body.section_id),
+          },
+        },
       ]);
 
       const content = getSection[0].sections.content;
 
-      return res.status(200).send(content[content.length -1]);
+      return res.status(200).send(content[content.length - 1]);
     } else {
       res.status(401).send("user is not logged in");
     }
@@ -766,7 +824,9 @@ router.patch("/sections/cards/delete", async (req, res) => {
         { user: mongoose.Types.ObjectId(id.userId) },
         {
           $pull: {
-            "sections.$[].content": {_id: mongoose.Types.ObjectId(req.body._id)},
+            "sections.$[].content": {
+              _id: mongoose.Types.ObjectId(req.body._id),
+            },
           },
         }
       );
