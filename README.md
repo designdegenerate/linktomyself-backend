@@ -1,5 +1,5 @@
 # Linktomyself Server
-The server side component of linktomyself, a homepage builder. Read more about it in [the front-end repo](). Built in Node.js using Express.
+The server side component of linktomyself, a homepage builder. Read more about it in [the front-end repo](https://github.com/designdegenerate/linktomyself-frontend). Built in Node.js using Express.
 
 ## Additional Requirements
 - Your own mongoDB server or MongoDB Atlas.
