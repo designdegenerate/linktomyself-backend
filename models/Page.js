@@ -8,7 +8,10 @@ const pageSchema = new Schema({
     ref: 'User',
     required: true,
   },
-  profileImage: String,
+  profileImage: {
+    link: String,
+    public_id: String,
+  },
   colors: {
     light: {
       name: String,
@@ -72,6 +75,7 @@ const pageSchema = new Schema({
             required: true,
           },
           image: String,
+          public_id: String,
           imageAlt: String,
           author: String,
           link: String,

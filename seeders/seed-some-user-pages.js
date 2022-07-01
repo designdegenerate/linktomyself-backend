@@ -20,13 +20,6 @@ const seedSomeUsersAndPages = async () => {
       name: "Amalie",
     });
 
-    const secondUser = await User.create({
-      email: "d@d.co",
-      password: bcrypt.hashSync("davidpassword", saltRounds),
-      username: "david",
-      name: "David",
-    });
-
     const firstPage = await Page.create({
       user: firstUser._id,
       profileImage: "https://cataas.com/cat?type=sq",
@@ -138,34 +131,11 @@ const seedSomeUsersAndPages = async () => {
       ],
     });
 
-    const secondPage = await Page.create({
-      user: secondUser._id,
-      colors: {
-        light: {
-          name: "orange",
-          lightFG: "#9f2500",
-          lightBG: "#ffd8c0",
-        },
-        dark: {
-          name: "orange",
-          darkFG: "#ff6c00",
-          darkBG: "#150a0a",
-        },
-      },
-      permaLinks: [],
-      oneLiner: "",
-      bio: "",
-      sectionOrdering: [],
-      sections: [],
-    });
-
-    await firstUser.update({ page: firstPage._id });
-    await secondUser.update({ page: secondPage._id });
+    await firstUser.updateOne({ page: firstPage._id });
 
     await firstUser.save();
-    await secondUser.save();
 
-    console.log(firstPage, secondPage);
+    console.log(firstPage);
     process.exit();
   } catch (error) {
     console.log(error);

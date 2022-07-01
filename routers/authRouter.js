@@ -317,15 +317,69 @@ router.post("/user/image", upload.single("image"), async (req, res) => {
 
       const newImage = await cloudinary.uploader.upload(req.file.path);
 
-      await page.updateOne({ profileImage: newImage.url });
+      const imgObj = {
+        link: newImage.url,
+        public_id: newImage.public_id
+      }
+
+      await page.updateOne({profileImage: imgObj});
 
       await unlinkAsync(req.file.path);
 
-      res.send({ profileImage: newImage.url });
+      res.send({profileImage: imgObj});
     }
   } catch (error) {
     console.log(error);
     res.status(500).send("something went wrong");
+  }
+});
+
+router.delete("/user/image", async(req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        console.log(error);
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user) {
+        return res.status(404).send("user no longer exists");
+      } 
+
+      //Get Image ID 
+      const page = await Page.findOne({user: id.userId});
+
+      console.log(page.profileImage);
+
+      if (!page.profileImage.link) {
+        return res.status(400).send("user does not have a profile picture");
+      }
+
+      // await Page.findOneAndDelete({ user: id.userId });
+      // await User.findByIdAndDelete(id.userId);
+
+      // Call Cloudinary API and delete image
+
+
+      // Delete key from MongoDB
+
+      res.status(200).send("");
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Something went wrong");
   }
 });
 
