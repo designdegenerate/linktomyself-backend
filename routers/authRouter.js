@@ -359,19 +359,13 @@ router.delete("/user/image", async(req, res) => {
       //Get Image ID 
       const page = await Page.findOne({user: id.userId});
 
-      console.log(page.profileImage);
-
       if (!page.profileImage.link) {
         return res.status(400).send("user does not have a profile picture");
       }
 
-      // await Page.findOneAndDelete({ user: id.userId });
-      // await User.findByIdAndDelete(id.userId);
+      await cloudinary.uploader.destroy(page.profileImage.public_id);
 
-      // Call Cloudinary API and delete image
-
-
-      // Delete key from MongoDB
+      await page.updateOne({profileImage: null});
 
       res.status(200).send("");
     } else {
