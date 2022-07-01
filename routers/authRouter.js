@@ -324,15 +324,15 @@ router.post("/user/image", upload.single("image"), async (req, res) => {
 
       const imgObj = {
         link: newImage.url,
-        public_id: newImage.public_id
-      }
+        public_id: newImage.public_id,
+      };
 
       //Update image
-      await page.updateOne({profileImage: imgObj});
+      await page.updateOne({ profileImage: imgObj });
 
       await unlinkAsync(req.file.path);
 
-      res.send({profileImage: imgObj});
+      res.send({ profileImage: imgObj });
     }
   } catch (error) {
     console.log(error);
@@ -340,7 +340,7 @@ router.post("/user/image", upload.single("image"), async (req, res) => {
   }
 });
 
-router.delete("/user/image", async(req, res) => {
+router.delete("/user/image", async (req, res) => {
   try {
     const cookies = req.cookies;
 
@@ -360,10 +360,10 @@ router.delete("/user/image", async(req, res) => {
       let user = await User.exists({ _id: id.userId });
       if (!user) {
         return res.status(404).send("user no longer exists");
-      } 
+      }
 
-      //Get Image ID 
-      const page = await Page.findOne({user: id.userId});
+      //Get Image ID
+      const page = await Page.findOne({ user: id.userId });
 
       if (!page.profileImage.link) {
         return res.status(400).send("user does not have a profile picture");
@@ -371,7 +371,7 @@ router.delete("/user/image", async(req, res) => {
 
       await cloudinary.uploader.destroy(page.profileImage.public_id);
 
-      await page.updateOne({profileImage: null});
+      await page.updateOne({ profileImage: null });
 
       res.status(200).send("");
     } else {
@@ -587,7 +587,7 @@ router.post("/sections", async (req, res) => {
 
       page = await Page.findOne({ user: id.userId });
 
-      const {sectionName, type, contentType} = req.body;
+      const { sectionName, type, contentType } = req.body;
 
       await page.sections.push({
         sectionName,
@@ -596,9 +596,9 @@ router.post("/sections", async (req, res) => {
         fullLink: {
           link: " ",
           text: " ",
-          visible: false
+          visible: false,
         },
-        content: []
+        content: [],
       });
 
       page.save();
@@ -828,6 +828,60 @@ router.post(
     }
   }
 );
+
+router.patch("/sections/cards/image/delete", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+
+      if (!user)
+        return res
+          .clearCookie("access_token")
+          .status(404)
+          .send("user no longer exists");
+      
+      await cloudinary.uploader.destroy(req.body.imageId);
+
+      await Page.findOneAndUpdate(
+        { user: id.userId },
+        {
+          $set: {
+            "sections.$[i].content.$[j].image": null,
+            "sections.$[i].content.$[j].imageId": null,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "i._id": req.body.section_id,
+            },
+            {
+              "j._id": req.body._id,
+            },
+          ],
+        }
+      );
+      
+      res.send("")
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("something went wrong");
+  }
+});
 
 router.post("/sections/cards", async (req, res) => {
   try {
