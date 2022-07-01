@@ -317,15 +317,69 @@ router.post("/user/image", upload.single("image"), async (req, res) => {
 
       const newImage = await cloudinary.uploader.upload(req.file.path);
 
-      await page.updateOne({ profileImage: newImage.url });
+      //Delete old image first if it exists
+      if (page.profileImage?.public_id) {
+        await cloudinary.uploader.destroy(page.profileImage.public_id);
+      }
+
+      const imgObj = {
+        link: newImage.url,
+        public_id: newImage.public_id,
+      };
+
+      //Update image
+      await page.updateOne({ profileImage: imgObj });
 
       await unlinkAsync(req.file.path);
 
-      res.send({ profileImage: newImage.url });
+      res.send({ profileImage: imgObj });
     }
   } catch (error) {
     console.log(error);
     res.status(500).send("something went wrong");
+  }
+});
+
+router.delete("/user/image", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        console.log(error);
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+      if (!user) {
+        return res.status(404).send("user no longer exists");
+      }
+
+      //Get Image ID
+      const page = await Page.findOne({ user: id.userId });
+
+      if (!page.profileImage.link) {
+        return res.status(400).send("user does not have a profile picture");
+      }
+
+      await cloudinary.uploader.destroy(page.profileImage.public_id);
+
+      await page.updateOne({ profileImage: null });
+
+      res.status(200).send("");
+    } else {
+      res.status(401).send("user is not logged in");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Something went wrong");
   }
 });
 
@@ -349,14 +403,26 @@ router.patch("/user/delete", async (req, res) => {
       let user = await User.exists({ _id: id.userId });
       if (!user) return res.status(404).send("user no longer exists");
 
-      if (!req.body._id) {
-        return res.status(400).send("Missing link data");
+      // if (!req.body._id) {
+      //   return res.status(400).send("Missing link data");
+      // }
+
+      const page = await Page.findOne({ user: id.userId });
+
+      if (page.profileImage?.link) {
+        await cloudinary.uploader.destroy(page.profileImage.public_id);
       }
+
+      await page.sections.map((sect) => {
+        sect.content.map((card) => {
+          cloudinary.uploader.destroy(card.imageId);
+        });
+      });
 
       await Page.findOneAndDelete({ user: id.userId });
       await User.findByIdAndDelete(id.userId);
 
-      return res.status(200).send("");
+      res.status(200).send("");
     } else {
       res.status(401).send("user is not logged in");
     }
@@ -533,7 +599,7 @@ router.post("/sections", async (req, res) => {
 
       page = await Page.findOne({ user: id.userId });
 
-      const {sectionName, type, contentType} = req.body;
+      const { sectionName, type, contentType } = req.body;
 
       await page.sections.push({
         sectionName,
@@ -542,9 +608,9 @@ router.post("/sections", async (req, res) => {
         fullLink: {
           link: " ",
           text: " ",
-          visible: false
+          visible: false,
         },
-        content: []
+        content: [],
       });
 
       page.save();
@@ -585,7 +651,23 @@ router.patch("/sections/delete", async (req, res) => {
         return res.status(400).send("Missing link data");
       }
 
-      page = await Page.findOne({ user: id.userId });
+      const page = await Page.findOne({ user: id.userId });
+
+      const getSection = await Page.aggregate([
+        { $match: { user: mongoose.Types.ObjectId(id.userId) } },
+        { $unwind: "$sections" },
+        {
+          $match: {
+            "sections._id": mongoose.Types.ObjectId(req.body._id),
+          },
+        },
+      ]);
+
+      await getSection[0].sections.content.map((card) => {
+        if (card.imageId) {
+          cloudinary.uploader.destroy(card.imageId);
+        }
+      });
 
       await page.sections.pull({ _id: req.body._id });
 
@@ -738,6 +820,10 @@ router.post(
           res.status(401).send("No file was attached to the request");
         }
 
+        if (req.body.imageId !== "undefined") {
+          await cloudinary.uploader.destroy(req.body.imageId);
+        }
+
         const newImage = await cloudinary.uploader.upload(req.file.path);
 
         await Page.findOneAndUpdate(
@@ -745,6 +831,7 @@ router.post(
           {
             $set: {
               "sections.$[i].content.$[j].image": newImage.url,
+              "sections.$[i].content.$[j].imageId": newImage.public_id,
             },
           },
           {
@@ -761,7 +848,7 @@ router.post(
 
         await unlinkAsync(req.file.path);
 
-        res.send({ image: newImage.url });
+        res.send({ image: newImage.url, imageId: newImage.public_id });
       }
     } catch (error) {
       console.log(error);
@@ -769,6 +856,60 @@ router.post(
     }
   }
 );
+
+router.patch("/sections/cards/image/delete", async (req, res) => {
+  try {
+    const cookies = req.cookies;
+
+    if (cookies.access_token) {
+      let id;
+
+      try {
+        id = jwt.verify(cookies.access_token, jwtKey);
+      } catch (error) {
+        res
+          .clearCookie("access_token")
+          .status(401)
+          .send("invalid or expired session");
+      }
+
+      let user = await User.exists({ _id: id.userId });
+
+      if (!user)
+        return res
+          .clearCookie("access_token")
+          .status(404)
+          .send("user no longer exists");
+
+      await cloudinary.uploader.destroy(req.body.imageId);
+
+      await Page.findOneAndUpdate(
+        { user: id.userId },
+        {
+          $set: {
+            "sections.$[i].content.$[j].image": null,
+            "sections.$[i].content.$[j].imageId": null,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "i._id": req.body.section_id,
+            },
+            {
+              "j._id": req.body._id,
+            },
+          ],
+        }
+      );
+
+      res.send("");
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("something went wrong");
+  }
+});
 
 router.post("/sections/cards", async (req, res) => {
   try {
