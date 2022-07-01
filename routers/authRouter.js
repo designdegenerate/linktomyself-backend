@@ -639,7 +639,23 @@ router.patch("/sections/delete", async (req, res) => {
         return res.status(400).send("Missing link data");
       }
 
-      page = await Page.findOne({ user: id.userId });
+      const page = await Page.findOne({ user: id.userId });
+
+      const getSection = await Page.aggregate([
+        { $match: { user: mongoose.Types.ObjectId(id.userId) } },
+        { $unwind: "$sections" },
+        {
+          $match: {
+            "sections._id": mongoose.Types.ObjectId(req.body._id),
+          },
+        },
+      ]);
+
+      await getSection[0].sections.content.map( card => {
+        if (card.imageId) {
+          cloudinary.uploader.destroy(card.imageId);
+        }
+      })
 
       await page.sections.pull({ _id: req.body._id });
 
