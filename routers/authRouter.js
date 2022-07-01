@@ -799,6 +799,7 @@ router.post(
           {
             $set: {
               "sections.$[i].content.$[j].image": newImage.url,
+              "sections.$[i].content.$[j].imageId": newImage.public_id,
             },
           },
           {
@@ -815,7 +816,7 @@ router.post(
 
         await unlinkAsync(req.file.path);
 
-        res.send({ image: newImage.url });
+        res.send({ image: newImage.url, imageId: newImage.public_id });
       }
     } catch (error) {
       console.log(error);

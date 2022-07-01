@@ -75,7 +75,7 @@ const pageSchema = new Schema({
             required: true,
           },
           image: String,
-          public_id: String,
+          imageId: String,
           imageAlt: String,
           author: String,
           link: String,
