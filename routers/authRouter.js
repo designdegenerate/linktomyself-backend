@@ -403,14 +403,26 @@ router.patch("/user/delete", async (req, res) => {
       let user = await User.exists({ _id: id.userId });
       if (!user) return res.status(404).send("user no longer exists");
 
-      if (!req.body._id) {
-        return res.status(400).send("Missing link data");
+      // if (!req.body._id) {
+      //   return res.status(400).send("Missing link data");
+      // }
+
+      const page = await Page.findOne({ user: id.userId });
+
+      if (page.profileImage?.link) {
+        await cloudinary.uploader.destroy(page.profileImage.public_id);
       }
+
+      await page.sections.map((sect) => {
+        sect.content.map((card) => {
+          cloudinary.uploader.destroy(card.imageId);
+        });
+      });
 
       await Page.findOneAndDelete({ user: id.userId });
       await User.findByIdAndDelete(id.userId);
 
-      return res.status(200).send("");
+      res.status(200).send("");
     } else {
       res.status(401).send("user is not logged in");
     }
@@ -651,11 +663,11 @@ router.patch("/sections/delete", async (req, res) => {
         },
       ]);
 
-      await getSection[0].sections.content.map( card => {
+      await getSection[0].sections.content.map((card) => {
         if (card.imageId) {
           cloudinary.uploader.destroy(card.imageId);
         }
-      })
+      });
 
       await page.sections.pull({ _id: req.body._id });
 
@@ -868,7 +880,7 @@ router.patch("/sections/cards/image/delete", async (req, res) => {
           .clearCookie("access_token")
           .status(404)
           .send("user no longer exists");
-      
+
       await cloudinary.uploader.destroy(req.body.imageId);
 
       await Page.findOneAndUpdate(
@@ -890,8 +902,8 @@ router.patch("/sections/cards/image/delete", async (req, res) => {
           ],
         }
       );
-      
-      res.send("")
+
+      res.send("");
     }
   } catch (error) {
     console.log(error);
