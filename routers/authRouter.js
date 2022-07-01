@@ -792,6 +792,10 @@ router.post(
           res.status(401).send("No file was attached to the request");
         }
 
+        if (req.body.imageId !== "undefined") {
+          await cloudinary.uploader.destroy(req.body.imageId);
+        }
+
         const newImage = await cloudinary.uploader.upload(req.file.path);
 
         await Page.findOneAndUpdate(
