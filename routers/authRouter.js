@@ -317,11 +317,17 @@ router.post("/user/image", upload.single("image"), async (req, res) => {
 
       const newImage = await cloudinary.uploader.upload(req.file.path);
 
+      //Delete old image first if it exists
+      if (page.profileImage?.public_id) {
+        await cloudinary.uploader.destroy(page.profileImage.public_id);
+      }
+
       const imgObj = {
         link: newImage.url,
         public_id: newImage.public_id
       }
 
+      //Update image
       await page.updateOne({profileImage: imgObj});
 
       await unlinkAsync(req.file.path);
