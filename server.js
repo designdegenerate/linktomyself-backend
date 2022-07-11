@@ -1,23 +1,20 @@
+import 'dotenv/config';
 const express = require("express");
 const mongoose = require("mongoose");
 const corsMiddleWare = require("cors");
 const cookiemiddleWare = require("cookie-parser");
 const pageRouter = require("./routers/pageRouter");
 const authRouter = require("./routers/authRouter");
-const { mongoURI, frontEndServer } = require("./keys");
+// const { mongoURI, frontEndServer } = require("./keys");
 
 const app = express();
 const PORT = 4000;
 
-//TODO:
-// 1. Integrate JWT, send it and integrate parser
-// 2. setup cookies, send one and parse it
-
-mongoose.connect(mongoURI);
+mongoose.connect(process.env.mongoURI);
 
 app.use(corsMiddleWare({
   preflightContinue: true,
-  origin: frontEndServer,
+  origin: process.env.frontEndServer,
   credentials: true,
 }));
 

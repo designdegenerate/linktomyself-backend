@@ -1,11 +1,12 @@
+import 'dotenv/config';
 const mongoose = require("mongoose");
 const Page = require("../models/Page");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const { mongoURI } = require("../keys");
+// const { mongoURI } = require("../keys");
 const saltRounds = 10;
 
-mongoose.connect(mongoURI);
+mongoose.connect(process.env.mongoURI);
 
 // This is a very ugly way of doing
 // it and just shown as a quick and
