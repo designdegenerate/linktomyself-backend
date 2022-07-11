@@ -1,0 +1,16 @@
+# Dotenv
+# rename this file into ".env" and fill in your details.
+
+# Insert your MongoURI here
+mongoURI = mongodb+srv://dbAdmin:yourmongodburl
+
+# Enter a string/password. This will be used to encrypt JWT tokens. I'd recommend using a very long string.
+jwtKey = correctbatteryhorsestaple
+
+# Change this to the location of your front-end server. Don't forget to whitelist this server in your MongoDB as well.
+frontEndServer = http://localhost:3000
+
+# Enter your Cloudinary API keys here
+cloudinaryKeysCloud_name = cloudname
+cloudinaryKeysApi_key = apikey
+cloudinaryKeysApi_secret = apisecret

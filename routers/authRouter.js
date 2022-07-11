@@ -1,9 +1,10 @@
+require('dotenv').config()
 const { Router } = require("express");
 const User = require("../models/User");
 const router = Router();
 const bcrypt = require("bcrypt");
 const Page = require("../models/Page");
-const { jwtKey, cloudinaryKeys } = require("../keys");
+// const { jwtKey, cloudinaryKeys } = require("../keys");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 const cloudinary = require("cloudinary").v2;
@@ -15,9 +16,9 @@ const { default: mongoose } = require("mongoose");
 const unlinkAsync = promisify(fs.unlink);
 
 cloudinary.config({
-  cloud_name: cloudinaryKeys.cloud_name,
-  api_key: cloudinaryKeys.api_key,
-  api_secret: cloudinaryKeys.api_secret,
+  cloud_name: process.env.cloudinaryKeysCloud_name,
+  api_key: process.env.cloudinaryKeysApi_key,
+  api_secret: process.env.cloudinaryKeysApi_secret,
 });
 
 router.post("/login", async (req, res) => {
@@ -39,7 +40,7 @@ router.post("/login", async (req, res) => {
 
     const userPage = await Page.findOne({ user: user._id });
 
-    const token = jwt.sign({ userId: user._id }, jwtKey);
+    const token = jwt.sign({ userId: user._id }, process.env.jwtKey);
 
     res
       .cookie("access_token", token, {
@@ -135,7 +136,7 @@ router.post("/register", async (req, res) => {
     delete userSanitized.password;
 
     // const userSanitized = delete newUser.password;
-    const token = jwt.sign({ userId: newUser._id }, jwtKey);
+    const token = jwt.sign({ userId: newUser._id }, process.env.jwtKey);
 
     res
       .cookie("access_token", token, {
@@ -165,7 +166,7 @@ router.get("/user", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         res
           .clearCookie("access_token")
@@ -207,7 +208,7 @@ router.patch("/user", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -294,7 +295,7 @@ router.post("/user/image", upload.single("image"), async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         res
           .clearCookie("access_token")
@@ -348,7 +349,7 @@ router.delete("/user/image", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -391,7 +392,7 @@ router.patch("/user/delete", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -440,7 +441,7 @@ router.post("/links", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -488,7 +489,7 @@ router.patch("/links", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -541,7 +542,7 @@ router.patch("/links/delete", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -581,7 +582,7 @@ router.post("/sections", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -635,7 +636,7 @@ router.patch("/sections/delete", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -691,7 +692,7 @@ router.patch("/sections/details", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -743,7 +744,7 @@ router.patch("/sections/cards", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -799,7 +800,7 @@ router.post(
         let id;
 
         try {
-          id = jwt.verify(cookies.access_token, jwtKey);
+          id = jwt.verify(cookies.access_token, process.env.jwtKey);
         } catch (error) {
           res
             .clearCookie("access_token")
@@ -865,7 +866,7 @@ router.patch("/sections/cards/image/delete", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         res
           .clearCookie("access_token")
@@ -919,7 +920,7 @@ router.post("/sections/cards", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
@@ -983,7 +984,7 @@ router.patch("/sections/cards/delete", async (req, res) => {
       let id;
 
       try {
-        id = jwt.verify(cookies.access_token, jwtKey);
+        id = jwt.verify(cookies.access_token, process.env.jwtKey);
       } catch (error) {
         console.log(error);
         res
