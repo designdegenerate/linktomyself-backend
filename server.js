@@ -8,7 +8,7 @@ const authRouter = require("./routers/authRouter");
 // const { mongoURI, frontEndServer } = require("./keys");
 
 const app = express();
-const PORT = 4000;
+// const PORT = 4000;
 
 mongoose.connect(process.env.mongoURI);
 
@@ -23,8 +23,8 @@ app.use(cookiemiddleWare());
 const bodyParserMiddleWare = express.json();
 app.use(bodyParserMiddleWare);
 
-app.listen(PORT, () => {
-  console.log(`Listening on port: ${PORT}`);
+app.listen(process.env.PORT, () => {
+  console.log(`Listening on port: ${process.env.PORT}`);
 })
 
 app.get("/", async(req, res) => {
