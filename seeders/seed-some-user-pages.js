@@ -1,4 +1,4 @@
-import 'dotenv/config';
+require('dotenv').config()
 const mongoose = require("mongoose");
 const Page = require("../models/Page");
 const User = require("../models/User");

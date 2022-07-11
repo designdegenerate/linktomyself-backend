@@ -1,4 +1,4 @@
-import 'dotenv/config';
+require('dotenv').config()
 const { Router } = require("express");
 const User = require("../models/User");
 const router = Router();
@@ -16,9 +16,9 @@ const { default: mongoose } = require("mongoose");
 const unlinkAsync = promisify(fs.unlink);
 
 cloudinary.config({
-  cloud_name: process.env.cloudinaryKeys.cloud_name,
-  api_key: process.env.cloudinaryKeys.api_key,
-  api_secret: process.env.cloudinaryKeys.api_secret,
+  cloud_name: process.env.cloudinaryKeysCloud_name,
+  api_key: process.env.cloudinaryKeysApi_key,
+  api_secret: process.env.cloudinaryKeysApi_secret,
 });
 
 router.post("/login", async (req, res) => {
