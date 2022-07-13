@@ -7,6 +7,7 @@ const pageRouter = require("./routers/pageRouter");
 const authRouter = require("./routers/authRouter");
 
 const app = express();
+const PORT = 4000;
 
 mongoose.connect(process.env.mongoURI);
 
@@ -21,7 +22,7 @@ app.use(cookiemiddleWare());
 const bodyParserMiddleWare = express.json();
 app.use(bodyParserMiddleWare);
 
-app.listen(process.env.PORT, () => {
+app.listen( process.env.PORT || PORT, () => {
   console.log(`Listening on port: ${process.env.PORT || 4000}`);
 })
 
