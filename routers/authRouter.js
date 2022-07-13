@@ -4,7 +4,6 @@ const User = require("../models/User");
 const router = Router();
 const bcrypt = require("bcrypt");
 const Page = require("../models/Page");
-// const { jwtKey, cloudinaryKeys } = require("../keys");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 const cloudinary = require("cloudinary").v2;
