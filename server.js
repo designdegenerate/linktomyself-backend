@@ -5,10 +5,8 @@ const corsMiddleWare = require("cors");
 const cookiemiddleWare = require("cookie-parser");
 const pageRouter = require("./routers/pageRouter");
 const authRouter = require("./routers/authRouter");
-// const { mongoURI, frontEndServer } = require("./keys");
 
 const app = express();
-// const PORT = 4000;
 
 mongoose.connect(process.env.mongoURI);
 
@@ -24,7 +22,7 @@ const bodyParserMiddleWare = express.json();
 app.use(bodyParserMiddleWare);
 
 app.listen(process.env.PORT, () => {
-  console.log(`Listening on port: ${process.env.PORT}`);
+  console.log(`Listening on port: ${process.env.PORT || 4000}`);
 })
 
 app.get("/", async(req, res) => {
